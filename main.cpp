@@ -3,17 +3,28 @@
 #include <string>
 #include <functional>
 
-int main() {
+int main(int argc, char *argv[]) {
     struct input_exception : std::runtime_error {
         explicit input_exception(const std::string &s) : std::runtime_error(s) {}
     };
 
     try {
-        if (!freopen("test.in", "r", stdin)) {
-            throw std::runtime_error("Unable to open file 'test.in'");
+        std::string input_file, output_file;
+        if (argc == 1) {
+            input_file = "test.in";
+            output_file = "test.out";
+        } else if (argc == 3) {
+            input_file = argv[1];
+            output_file = argv[2];
+        } else {
+            throw input_exception("Usage: ./program <input-file> <output-file>");
         }
-        if (!freopen("test.out", "w", stdout)) {
-            throw std::runtime_error("Unable to open file 'test.out'");
+
+        if (!freopen(input_file.c_str(), "r", stdin)) {
+            throw std::runtime_error("Unable to open file '" + input_file + "'");
+        }
+        if (!freopen(output_file.c_str(), "w", stdout)) {
+            throw std::runtime_error("Unable to open file '" + output_file + "'");
         }
 
         const int MAX_SIZE = 10'000'000;
