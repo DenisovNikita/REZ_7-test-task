@@ -1,16 +1,31 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <cassert>
+#include <vector>
+#include <string>
+#include <functional>
 
 int main() {
-    freopen("test.in", "r", stdin);
-    freopen("test.out", "w", stdout);
+    if (!freopen("test.in", "r", stdin)) {
+        std::cerr << "Unable to open file 'test.in'\n";
+        exit(-1);
+    }
+    assert(freopen("test.out", "w", stdout));
+
+    const int MAXN = 5'000;
     int n, m;
     std::cin >> n >> m;
+    assert(1 <= n && n <= MAXN);
+    assert(1 <= m && m <= MAXN);
+
     std::vector<std::string> field(n);
     for (auto &s: field) {
         std::cin >> s;
+        assert(s.size() == m);
     }
     std::pair<int, int> start;
     std::cin >> start.first >> start.second;
+    assert(1 <= start.first && start.first <= n);
+    assert(1 <= start.second && start.second <= m);
     --start.first, --start.second;  // [0, n), [0, m)
 
     const int MOVES = 4;
@@ -45,8 +60,10 @@ int main() {
         }
     };
 
-    auto go = [](int x, int y) {
-        std::cout << x << " " << y << "\n";
+    auto go = [&n, &m](int x, int y) {
+        assert(0 <= x && x < n);
+        assert(0 <= y && y < m);
+        std::cout << x + 1 << " " << y + 1 << "\n";
         exit(0);
     };
     for (int i = 0; i < n; ++i) {
