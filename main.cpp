@@ -1,43 +1,36 @@
 #include <iostream>
+#include <utility>
 #include <vector>
 #include <string>
 #include <functional>
 
-int main(int argc, char *argv[]) {
-    struct input_exception : std::runtime_error {
-        explicit input_exception(const std::string &s) : std::runtime_error(s) {}
-    };
+struct input_exception : std::runtime_error {
+    explicit input_exception(const std::string &s) : std::runtime_error(s) {}
+};
 
-    try {
-        std::string input_file, output_file;
-        if (argc == 1) {
-            input_file = "test.in";
-            output_file = "test.out";
-        } else if (argc == 3) {
-            input_file = argv[1];
-            output_file = argv[2];
-        } else {
-            throw input_exception("Usage: ./program <input-file> <output-file>");
-        }
+struct solver {
+    const int MAX_SIZE = 100'000;
+    const int MOVES = 4;
+    const std::vector<int> dx{1, 0, -1, 0};
+    const std::vector<int> dy{0, -1, 0, 1};
 
-        if (!freopen(input_file.c_str(), "r", stdin)) {
-            throw std::runtime_error("Unable to open file '" + input_file + "'");
-        }
-        if (!freopen(output_file.c_str(), "w", stdout)) {
-            throw std::runtime_error("Unable to open file '" + output_file + "'");
-        }
+    int n{}, m{};
+    std::vector<std::string> field;
+    std::pair<int, int> start;
+    std::vector<std::vector<int>> used;
 
-        const int MAX_SIZE = 10'000'000;
-        int n, m;
+    solver() = default;
+
+    void read() {
         std::cin >> n >> m;
-        if (n * m > MAX_SIZE) {
+        if (n * 1LL * m > MAX_SIZE) {
             throw input_exception("too big size of field: "
                                   "n = " + std::to_string(n) +
                                   ", m = " + std::to_string(m) +
                                   " when should be 1 <= n * m <= " + std::to_string(MAX_SIZE));
         }
 
-        std::vector<std::string> field(n);
+        field.resize(n);
         for (auto &s: field) {
             std::cin >> s;
             if (s.size() != m) {
@@ -49,7 +42,7 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-        std::pair<int, int> start;
+
         std::cin >> start.first >> start.second;
         if (!(1 <= start.first && start.first <= n) ||
             !(1 <= start.second && start.second <= m)) {
@@ -59,44 +52,37 @@ int main(int argc, char *argv[]) {
                                   " when should be 1 <= x <= n, 1 <= y <= m");
         }
         --start.first, --start.second;  // [0, n), [0, m)
-
         if (field[start.first][start.second] != '0') {
             throw input_exception("start cell is not empty");
         }
+    }
 
-        const int MOVES = 4;
-        const std::vector<int> dx{1, 0, -1, 0};
-        const std::vector<int> dy{0, -1, 0, 1};
+    bool can_go(std::pair<int, int> v) {
+        return 0 <= v.first && v.first < n &&
+               0 <= v.second && v.second < m &&
+               field[v.first][v.second] == '0' &&
+               !used[v.first][v.second];
+    };
 
-        std::vector<std::vector<int>> used(n, std::vector<int>(m));
-        auto can_go = [&n, &m, &field, &used](std::pair<int, int> v) {
-            return 0 <= v.first && v.first < n &&
-                   0 <= v.second && v.second < m &&
-                   field[v.first][v.second] == '0' &&
-                   !used[v.first][v.second];
-        };
-        std::function<void(std::pair<int, int>)> dfs = [&dfs, &dx, &dy, &used, &can_go](std::pair<int, int> v) {
-            used[v.first][v.second] = 1;
-            for (int dir = 0; dir < MOVES; ++dir) {
-                std::pair<int, int> next = {v.first + dx[dir],
-                                            v.second + dy[dir]};
-                if (can_go(next)) {
-                    dfs(next);
-                }
+    void dfs(std::pair<int, int> v) {
+        used[v.first][v.second] = 1;
+        for (int dir = 0; dir < MOVES; ++dir) {
+            std::pair<int, int> next = {v.first + dx[dir],
+                                        v.second + dy[dir]};
+            if (can_go(next)) {
+                dfs(next);
             }
-        };
+        }
+    }
+
+    void solve() {
+        used.resize(n);
+        for (auto &v : used) {
+            v.assign(m, 0);
+        }
         dfs(start);
 
-        [[maybe_unused]] auto print_used = [&used]() {
-            for (const auto &v: used) {
-                for (const int &x: v) {
-                    std::cout << x << " ";
-                }
-                std::cout << "\n";
-            }
-        };
-
-        auto go = [&n, &m](int x, int y) {
+        auto go = [&](int x, int y) {
             if (!(0 <= x && x < n) ||
                 !(0 <= y && y < m)) {
                 throw std::logic_error("bad output coordinates: " + std::to_string(x) + " " + std::to_string(y));
@@ -121,6 +107,33 @@ int main(int argc, char *argv[]) {
             }
         }
         std::cout << "-1 -1\n";
+    }
+};
+
+int main(int argc, char *argv[]) {
+
+    try {
+        std::string input_file, output_file;
+        if (argc == 1) {
+            input_file = "test.in";
+            output_file = "test.out";
+        } else if (argc == 3) {
+            input_file = argv[1];
+            output_file = argv[2];
+        } else {
+            throw input_exception("Usage: ./program <input-file> <output-file>");
+        }
+
+        if (!freopen(input_file.c_str(), "r", stdin)) {
+            throw std::runtime_error("Unable to open file '" + input_file + "'");
+        }
+        if (!freopen(output_file.c_str(), "w", stdout)) {
+            throw std::runtime_error("Unable to open file '" + output_file + "'");
+        }
+
+        solver my_solver;
+        my_solver.read();
+        my_solver.solve();
     } catch (const std::runtime_error &e) {
         std::cerr << e.what() << "\n";
         exit(-1);
