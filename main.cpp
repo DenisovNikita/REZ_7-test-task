@@ -113,7 +113,6 @@ struct solver {
 };
 
 int main(int argc, char *argv[]) {
-
     try {
         std::string input_file, output_file;
         if (argc == 1) {
