@@ -23,11 +23,13 @@ struct solver {
 
     void read() {
         std::cin >> n >> m;
-        if (n * 1LL * m > MAX_SIZE) {
-            throw input_exception("too big size of field: "
+        if (n < 1 || m < 1 ||
+            n * 1LL * m > MAX_SIZE) {
+            throw input_exception("invalid size of field: "
                                   "n = " + std::to_string(n) +
                                   ", m = " + std::to_string(m) +
-                                  " when should be 1 <= n * m <= " + std::to_string(MAX_SIZE));
+                                  " when should be n, m is natural and "
+                                  "1 <= n * m <= " + std::to_string(MAX_SIZE));
         }
 
         field.resize(n);
@@ -77,7 +79,7 @@ struct solver {
 
     void solve() {
         used.resize(n);
-        for (auto &v : used) {
+        for (auto &v: used) {
             v.assign(m, 0);
         }
         dfs(start);
@@ -115,8 +117,8 @@ int main(int argc, char *argv[]) {
     try {
         std::string input_file, output_file;
         if (argc == 1) {
-            input_file = "test.in";
-            output_file = "test.out";
+            input_file = "tests/normal_test.in";
+            output_file = "tests/normal_test.out";
         } else if (argc == 3) {
             input_file = argv[1];
             output_file = argv[2];
